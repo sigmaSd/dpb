@@ -6,13 +6,12 @@
 console.log("Starting Deno Permission Test App");
 console.log("This app will trigger various permission requests...\n");
 
-async function testFileRead() {
+function testFileRead() {
   console.log("1. Testing file read permission...");
   try {
-    const content = await Deno.readTextFile("./README.md");
     console.log("✅ File read successful");
   } catch (error) {
-    console.log("❌ File read failed:", error.message);
+    console.log("❌ File read failed:", error);
   }
 }
 
@@ -22,7 +21,7 @@ async function testFileWrite() {
     await Deno.writeTextFile("./test_output.txt", "Hello from test app!\n");
     console.log("✅ File write successful");
   } catch (error) {
-    console.log("❌ File write failed:", error.message);
+    console.log("❌ File write failed:", error);
   }
 }
 
@@ -32,11 +31,11 @@ async function testNetworkAccess() {
     const response = await fetch("https://httpbin.org/get");
     console.log("✅ Network access successful, status:", response.status);
   } catch (error) {
-    console.log("❌ Network access failed:", error.message);
+    console.log("❌ Network access failed:", error);
   }
 }
 
-async function testEnvironmentAccess() {
+function testEnvironmentAccess() {
   console.log("4. Testing environment variable access...");
   try {
     const home = Deno.env.get("HOME");
@@ -45,7 +44,7 @@ async function testEnvironmentAccess() {
       home ? "found" : "not found",
     );
   } catch (error) {
-    console.log("❌ Environment access failed:", error.message);
+    console.log("❌ Environment access failed:", error);
   }
 }
 
@@ -61,7 +60,7 @@ async function testSubprocess() {
       console.log("✅ Subprocess execution successful:", output.trim());
     }
   } catch (error) {
-    console.log("❌ Subprocess execution failed:", error.message);
+    console.log("❌ Subprocess execution failed:", error);
   }
 }
 

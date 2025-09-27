@@ -72,7 +72,7 @@ component DashboardView inherits Rectangle {
     background: #34495e;
 
     VerticalBox {
-        padding: 20px;
+        padding: 50px;
         spacing: 20px;
 
         // Header
@@ -366,33 +366,6 @@ component PermissionRequestView inherits Rectangle {
                     }
                 }
 
-                // Security warning
-                Rectangle {
-                    background: rgba(241, 196, 15, 0.1);
-                    border-radius: 8px;
-                    border-width: 1px;
-                    border-color: #f1c40f;
-                    height: 60px;
-
-                    HorizontalBox {
-                        padding: 15px;
-                        spacing: 10px;
-                        alignment: center;
-
-                        Text {
-                            text: "⚡";
-                            font-size: 20px;
-                        }
-
-                        Text {
-                            text: "Only allow if you trust this application. This permission grants potentially dangerous system access.";
-                            font-size: 11px;
-                            color: #f39c12;
-                            wrap: word-wrap;
-                        }
-                    }
-                }
-
                 // Action buttons
                 HorizontalBox {
                     spacing: 15px;
@@ -437,8 +410,8 @@ export component Window inherits Window {
     callback deny-clicked();
 
     title: "Deno Permission Broker";
-    width: 600px;
-    height: 700px;
+    width: 1280px;
+    height: 720px;
 
     if !showing-request: DashboardView {
         broker-status: root.broker-status;

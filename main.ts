@@ -64,6 +64,7 @@ class PermissionBroker {
 
     // Create the Slint UI
     const ui = slint.loadSource(slintUi, "main.ts");
+    // deno-lint-ignore no-explicit-any
     this.window = new (ui as any).Window() as BrokerWindow;
 
     // Initialize dashboard
@@ -196,7 +197,7 @@ class PermissionBroker {
     }
   }
 
-  private async handlePermissionRequest(
+  private handlePermissionRequest(
     request: PermissionRequest,
   ): Promise<PermissionResponse> {
     return new Promise<PermissionResponse>((resolve) => {
