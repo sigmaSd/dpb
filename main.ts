@@ -182,7 +182,7 @@ class PermissionBroker {
       r.id === requestId
     );
     if (requestIndex >= 0) {
-      this.requestHistory[requestIndex].status = status;
+      this.requestHistory[requestIndex].status = status.toUpperCase();
     }
     this.updateStats();
   }
@@ -263,7 +263,7 @@ class PermissionBroker {
           permission_type: this.formatPermissionType(request.permission),
           resource: this.formatPermissionValue(request.value),
           timestamp: new Date().toLocaleTimeString(),
-          status: "allowed",
+          status: "ALLOWED",
         };
         this.requestHistory.push(requestData);
         this.updateStats();
@@ -287,7 +287,7 @@ class PermissionBroker {
         permission_type: this.formatPermissionType(request.permission),
         resource: this.formatPermissionValue(request.value),
         timestamp: new Date().toLocaleTimeString(),
-        status: "pending",
+        status: "PENDING",
       };
       this.requestHistory.push(requestData);
 
