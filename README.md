@@ -24,6 +24,12 @@ Applications can connect to the broker via the Unix socket to request permission
 - **Deny**: Reject the permission request
 - **Allow All**: Automatically approve all future requests of this permission type
 
+To run a deno app with this broker use:
+
+```bash
+DENO_PERMISSION_BROKER_PATH=/tmp/deno_perm_broker.sock deno myscript.ts
+```
+
 ## Interface
 
 <img width="1280" height="685" alt="image" src="https://github.com/user-attachments/assets/34c7bddb-58bc-427b-9470-328fb75971e5" />
