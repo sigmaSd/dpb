@@ -68,6 +68,9 @@ component DashboardView inherits Rectangle {
     in property <int> allowed-requests;
     in property <int> denied-requests;
     in property <[PermissionRequest]> recent-requests;
+    in property <[string]> allow-all-permissions;
+
+    callback clear-allow-all-clicked();
 
     background: #34495e;
 
@@ -183,6 +186,56 @@ component DashboardView inherits Rectangle {
             }
         }
 
+        // Allow-All Permissions
+        if allow-all-permissions.length > 0: GroupBox {
+            title: "Auto-Allow Permissions";
+
+            VerticalBox {
+                spacing: 10px;
+
+                HorizontalBox {
+                    spacing: 10px;
+                    padding: 10px;
+
+                    for permission in allow-all-permissions: Rectangle {
+                        width: 120px;
+                        height: 40px;
+                        background: #2ecc71;
+                        border-radius: 20px;
+
+                        HorizontalBox {
+                            alignment: center;
+                            spacing: 5px;
+
+                            Text {
+                                text: "✅";
+                                font-size: 12px;
+                            }
+
+                            Text {
+                                text: permission;
+                                color: white;
+                                font-size: 10px;
+                                font-weight: 600;
+                            }
+                        }
+                    }
+                }
+
+                HorizontalBox {
+                    alignment: center;
+                    padding: 10px;
+
+                    Button {
+                        text: "🗑️ Clear All Auto-Allow";
+                        clicked => {
+                            root.clear-allow-all-clicked();
+                        }
+                    }
+                }
+            }
+        }
+
         // Recent Requests
         GroupBox {
             title: "Recent Requests";
@@ -259,6 +312,7 @@ component PermissionRequestView inherits Rectangle {
 
     callback allow-clicked();
     callback deny-clicked();
+    callback allow-all-clicked();
 
     background: #2c3e50;
 
@@ -384,6 +438,13 @@ component PermissionRequestView inherits Rectangle {
                             root.allow-clicked();
                         }
                     }
+
+                    Button {
+                        text: "✅ Allow All";
+                        clicked => {
+                            root.allow-all-clicked();
+                        }
+                    }
                 }
             }
         }
@@ -398,6 +459,7 @@ export component Window inherits Window {
     in-out property <int> allowed-requests: 0;
     in-out property <int> denied-requests: 0;
     in-out property <[PermissionRequest]> recent-requests: [];
+    in-out property <[string]> allow-all-permissions: [];
 
     // Current permission request
     in-out property <string> permission-type: "";
@@ -408,6 +470,8 @@ export component Window inherits Window {
 
     callback allow-clicked();
     callback deny-clicked();
+    callback allow-all-clicked();
+    callback clear-allow-all-clicked();
 
     title: "Deno Permission Broker";
     width: 1280px;
@@ -421,6 +485,11 @@ export component Window inherits Window {
         allowed-requests: root.allowed-requests;
         denied-requests: root.denied-requests;
         recent-requests: root.recent-requests;
+        allow-all-permissions: root.allow-all-permissions;
+
+        clear-allow-all-clicked => {
+            root.clear-allow-all-clicked();
+        }
     }
 
     if showing-request: PermissionRequestView {
@@ -435,6 +504,10 @@ export component Window inherits Window {
 
         deny-clicked => {
             root.deny-clicked();
+        }
+
+        allow-all-clicked => {
+            root.allow-all-clicked();
         }
     }
 }

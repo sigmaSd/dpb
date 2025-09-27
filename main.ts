@@ -30,6 +30,7 @@ interface BrokerWindow {
   allowed_requests: number;
   denied_requests: number;
   recent_requests: PermissionRequestData[];
+  allow_all_permissions: string[];
   permission_type: string;
   permission_value: string;
   datetime: string;
@@ -37,6 +38,8 @@ interface BrokerWindow {
   showing_request: boolean;
   allow_clicked: () => void;
   deny_clicked: () => void;
+  allow_all_clicked: () => void;
+  clear_allow_all_clicked: () => void;
   run: () => Promise<void>;
 }
 
@@ -51,6 +54,7 @@ class PermissionBroker {
   private totalRequests = 0;
   private allowedRequests = 0;
   private deniedRequests = 0;
+  private allowAllPermissions = new Set<string>();
 
   constructor(socketPath: string) {
     // Remove existing socket file if it exists
@@ -71,6 +75,7 @@ class PermissionBroker {
     this.window.broker_status = "Listening for connections...";
     this.window.socket_path = socketPath;
     this.window.showing_request = false;
+    this.window.allow_all_permissions = [];
     this.updateStats();
     this.startTimeUpdater();
 
@@ -114,6 +119,42 @@ class PermissionBroker {
         console.log("No pending request found");
       }
     };
+
+    this.window.allow_all_clicked = () => {
+      console.log("Allow All button clicked");
+      const requestId = this.window.request_id;
+      const resolver = this.pendingRequests.get(requestId);
+      if (resolver) {
+        const requestData = this.requestHistory.find((r) => r.id === requestId);
+        if (requestData) {
+          // Extract the raw permission type from the formatted display name
+          const permissionType = this.getRawPermissionType(
+            requestData.permission_type,
+          );
+          this.allowAllPermissions.add(permissionType);
+          console.log(`Adding ${permissionType} to allow-all list`);
+          this.updateAllowAllPermissionsUI();
+        }
+
+        console.log(
+          `Allowing permission request ${requestId} and all future ${requestData?.permission_type} requests`,
+        );
+        resolver({ id: requestId, result: "allow" });
+        this.pendingRequests.delete(requestId);
+        this.allowedRequests++;
+        this.updateRequestHistory(requestId, "allowed");
+        this.returnToDashboard();
+      } else {
+        console.log("No pending request found");
+      }
+    };
+
+    this.window.clear_allow_all_clicked = () => {
+      console.log("Clear Allow All button clicked");
+      this.allowAllPermissions.clear();
+      this.updateAllowAllPermissionsUI();
+      console.log("Cleared all auto-allow permissions");
+    };
   }
 
   private startTimeUpdater() {
@@ -127,6 +168,13 @@ class PermissionBroker {
     this.window.allowed_requests = this.allowedRequests;
     this.window.denied_requests = this.deniedRequests;
     this.window.recent_requests = this.requestHistory.slice(-10).reverse();
+  }
+
+  private updateAllowAllPermissionsUI() {
+    this.window.allow_all_permissions = Array.from(this.allowAllPermissions)
+      .map(
+        (perm) => this.formatPermissionType(perm),
+      );
   }
 
   private updateRequestHistory(requestId: number, status: string) {
@@ -201,6 +249,30 @@ class PermissionBroker {
     request: PermissionRequest,
   ): Promise<PermissionResponse> {
     return new Promise<PermissionResponse>((resolve) => {
+      // Check if this permission type is in the allow-all list
+      if (this.allowAllPermissions.has(request.permission)) {
+        console.log(
+          `Auto-allowing ${request.permission} request due to allow-all setting`,
+        );
+
+        // Add to request history as allowed
+        this.totalRequests++;
+        this.allowedRequests++;
+        const requestData: PermissionRequestData = {
+          id: request.id,
+          permission_type: this.formatPermissionType(request.permission),
+          resource: this.formatPermissionValue(request.value),
+          timestamp: new Date().toLocaleTimeString(),
+          status: "allowed",
+        };
+        this.requestHistory.push(requestData);
+        this.updateStats();
+
+        // Immediately resolve with allow
+        resolve({ id: request.id, result: "allow" });
+        return;
+      }
+
       // Store the resolver for this request
       this.pendingRequests.set(request.id, resolve);
 
@@ -273,6 +345,29 @@ class PermissionBroker {
       return date.toLocaleString();
     } catch {
       return datetime;
+    }
+  }
+
+  private getRawPermissionType(formattedType: string): string {
+    switch (formattedType) {
+      case "File System Read":
+        return "read";
+      case "File System Write":
+        return "write";
+      case "Network Access":
+        return "net";
+      case "Environment Variables":
+        return "env";
+      case "Run Subprocess":
+        return "run";
+      case "Foreign Function Interface":
+        return "ffi";
+      case "High Resolution Time":
+        return "hrtime";
+      case "System Information":
+        return "sys";
+      default:
+        return formattedType.toLowerCase();
     }
   }
 
