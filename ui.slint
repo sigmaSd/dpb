@@ -1,0 +1,467 @@
+import { Button, VerticalBox, HorizontalBox, GroupBox, ListView } from "std-widgets.slint";
+
+struct PermissionRequest {
+    id: int,
+    permission-type: string,
+    resource: string,
+    timestamp: string,
+    status: string, // "pending", "allowed", "denied"
+}
+
+component StatusCard inherits Rectangle {
+    in property <string> title;
+    in property <string> value;
+    in property <color> accent-color: #4CAF50;
+
+    width: 120px;
+    height: 80px;
+    background: #2c3e50;
+    border-radius: 8px;
+    border-width: 2px;
+    border-color: accent-color;
+
+    VerticalBox {
+        alignment: center;
+        spacing: 5px;
+
+        Text {
+            text: title;
+            font-size: 11px;
+            color: #bdc3c7;
+            horizontal-alignment: center;
+        }
+
+        Text {
+            text: value;
+            font-size: 18px;
+            font-weight: 700;
+            color: accent-color;
+            horizontal-alignment: center;
+        }
+    }
+}
+
+component PermissionIcon inherits Rectangle {
+    in property <string> permission-type;
+
+    width: 48px;
+    height: 48px;
+
+    Rectangle {
+        background: permission-type == "File System Read" ? #FFA500 : permission-type == "File System Write" ? #FF6B6B : permission-type == "Network Access" ? #4ECDC4 : permission-type == "Environment Variables" ? #A8E6CF : permission-type == "Run Subprocess" ? #FF8A80 : #B39DDB;
+        border-radius: 24px;
+
+        Text {
+            text: permission-type == "File System Read" ? "📁" : permission-type == "File System Write" ? "✏️" : permission-type == "Network Access" ? "🌐" : permission-type == "Environment Variables" ? "⚙️" : permission-type == "Run Subprocess" ? "⚡" : "🔒";
+            font-size: 24px;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+    }
+}
+
+component DashboardView inherits Rectangle {
+    in property <string> broker-status;
+    in property <string> socket-path;
+    in property <string> current-time;
+    in property <int> total-requests;
+    in property <int> allowed-requests;
+    in property <int> denied-requests;
+    in property <[PermissionRequest]> recent-requests;
+
+    background: #34495e;
+
+    VerticalBox {
+        padding: 20px;
+        spacing: 20px;
+
+        // Header
+        HorizontalBox {
+            alignment: center;
+            spacing: 15px;
+
+            Rectangle {
+                width: 64px;
+                height: 64px;
+                background: #3498db;
+                border-radius: 32px;
+
+                Text {
+                    text: "🛡️";
+                    font-size: 32px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            VerticalBox {
+                alignment: start;
+                spacing: 5px;
+
+                Text {
+                    text: "Deno Permission Broker";
+                    font-size: 24px;
+                    font-weight: 700;
+                    color: #ecf0f1;
+                }
+
+                Text {
+                    text: broker-status;
+                    font-size: 14px;
+                    color: #95a5a6;
+                }
+            }
+        }
+
+        // Status Cards
+        HorizontalBox {
+            alignment: center;
+            spacing: 15px;
+
+            StatusCard {
+                title: "Total";
+                value: "\{total-requests}";
+                accent-color: #3498db;
+            }
+
+            StatusCard {
+                title: "Allowed";
+                value: "\{allowed-requests}";
+                accent-color: #2ecc71;
+            }
+
+            StatusCard {
+                title: "Denied";
+                value: "\{denied-requests}";
+                accent-color: #e74c3c;
+            }
+        }
+
+        // Socket Info
+        GroupBox {
+            title: "Configuration";
+
+            VerticalBox {
+                spacing: 10px;
+
+                HorizontalBox {
+                    Text {
+                        text: "Socket Path:";
+                        font-weight: 600;
+                        color: #ecf0f1;
+                        width: 100px;
+                    }
+
+                    Text {
+                        text: socket-path;
+                        color: #95a5a6;
+                        font-family: "monospace";
+                    }
+                }
+
+                HorizontalBox {
+                    Text {
+                        text: "Status:";
+                        font-weight: 600;
+                        color: #ecf0f1;
+                        width: 100px;
+                    }
+
+                    Rectangle {
+                        width: 12px;
+                        height: 12px;
+                        background: #2ecc71;
+                        border-radius: 6px;
+                    }
+
+                    Text {
+                        text: "Listening";
+                        color: #2ecc71;
+                        font-weight: 500;
+                    }
+                }
+            }
+        }
+
+        // Recent Requests
+        GroupBox {
+            title: "Recent Requests";
+
+            ListView {
+                for request in recent-requests: HorizontalBox {
+                    spacing: 10px;
+                    padding: 8px;
+
+                    Rectangle {
+                        width: 8px;
+                        height: 30px;
+                        background: request.status == "allowed" ? #2ecc71 : request.status == "denied" ? #e74c3c : #f39c12;
+                        border-radius: 4px;
+                    }
+
+                    VerticalBox {
+                        alignment: start;
+
+                        Text {
+                            text: request.permission-type;
+                            font-weight: 600;
+                            color: #ecf0f1;
+                            font-size: 12px;
+                        }
+
+                        Text {
+                            text: request.resource;
+                            color: #95a5a6;
+                            font-size: 10px;
+                        }
+                    }
+
+                    Rectangle { } // spacer
+
+                    VerticalBox {
+                        alignment: end;
+
+                        Text {
+                            text: request.status;
+                            font-size: 10px;
+                            color: request.status == "allowed" ? #2ecc71 : request.status == "denied" ? #e74c3c : #f39c12;
+                            font-weight: 600;
+                        }
+
+                        Text {
+                            text: request.timestamp;
+                            font-size: 9px;
+                            color: #7f8c8d;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Footer
+        HorizontalBox {
+            alignment: center;
+
+            Text {
+                text: "🕒 " + current-time;
+                color: #95a5a6;
+                font-size: 12px;
+            }
+        }
+    }
+}
+
+component PermissionRequestView inherits Rectangle {
+    in property <string> permission-type;
+    in property <string> permission-value;
+    in property <string> datetime;
+    in property <int> request-id;
+
+    callback allow-clicked();
+    callback deny-clicked();
+
+    background: #2c3e50;
+
+    // Overlay background
+    Rectangle {
+        background: rgba(44, 62, 80, 0.95);
+
+        // Permission dialog
+        Rectangle {
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+            width: 500px;
+            height: 400px;
+            background: #34495e;
+            border-radius: 12px;
+            border-width: 2px;
+            border-color: #e74c3c;
+            drop-shadow-blur: 20px;
+            drop-shadow-color: rgba(0, 0, 0, 0.5);
+
+            VerticalBox {
+                padding: 30px;
+                spacing: 20px;
+
+                // Header with icon and title
+                HorizontalBox {
+                    spacing: 20px;
+                    alignment: center;
+
+                    PermissionIcon {
+                        permission-type: root.permission-type;
+                    }
+
+                    VerticalBox {
+                        alignment: start;
+                        spacing: 8px;
+
+                        Text {
+                            text: "⚠️ Permission Request";
+                            font-size: 20px;
+                            font-weight: 700;
+                            color: #e74c3c;
+                        }
+
+                        Text {
+                            text: "A Deno application is requesting system access.";
+                            font-size: 12px;
+                            color: #95a5a6;
+                            wrap: word-wrap;
+                        }
+                    }
+                }
+
+                // Request details
+                GroupBox {
+                    title: "Permission Details";
+
+                    VerticalBox {
+                        spacing: 15px;
+
+                        HorizontalBox {
+                            Text {
+                                text: "Type:";
+                                font-weight: 600;
+                                color: #ecf0f1;
+                                width: 80px;
+                            }
+
+                            Text {
+                                text: root.permission-type;
+                                color: #e74c3c;
+                                font-weight: 500;
+                            }
+                        }
+
+                        HorizontalBox {
+                            Text {
+                                text: "Resource:";
+                                font-weight: 600;
+                                color: #ecf0f1;
+                                width: 80px;
+                            }
+
+                            Text {
+                                text: root.permission-value;
+                                color: #3498db;
+                                wrap: word-wrap;
+                            }
+                        }
+
+                        HorizontalBox {
+                            Text {
+                                text: "Time:";
+                                font-weight: 600;
+                                color: #ecf0f1;
+                                width: 80px;
+                            }
+
+                            Text {
+                                text: root.datetime;
+                                color: #95a5a6;
+                                font-size: 11px;
+                            }
+                        }
+                    }
+                }
+
+                // Security warning
+                Rectangle {
+                    background: rgba(241, 196, 15, 0.1);
+                    border-radius: 8px;
+                    border-width: 1px;
+                    border-color: #f1c40f;
+                    height: 60px;
+
+                    HorizontalBox {
+                        padding: 15px;
+                        spacing: 10px;
+                        alignment: center;
+
+                        Text {
+                            text: "⚡";
+                            font-size: 20px;
+                        }
+
+                        Text {
+                            text: "Only allow if you trust this application. This permission grants potentially dangerous system access.";
+                            font-size: 11px;
+                            color: #f39c12;
+                            wrap: word-wrap;
+                        }
+                    }
+                }
+
+                // Action buttons
+                HorizontalBox {
+                    spacing: 15px;
+                    alignment: center;
+
+                    Button {
+                        text: "🚫 Deny";
+                        clicked => {
+                            root.deny-clicked();
+                        }
+                    }
+
+                    Button {
+                        text: "✅ Allow";
+                        clicked => {
+                            root.allow-clicked();
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+export component Window inherits Window {
+    in-out property <string> broker-status: "Initializing...";
+    in-out property <string> socket-path: "/tmp/deno_perm_broker.sock";
+    in-out property <string> current-time: "00:00:00";
+    in-out property <int> total-requests: 0;
+    in-out property <int> allowed-requests: 0;
+    in-out property <int> denied-requests: 0;
+    in-out property <[PermissionRequest]> recent-requests: [];
+
+    // Current permission request
+    in-out property <string> permission-type: "";
+    in-out property <string> permission-value: "";
+    in-out property <string> datetime: "";
+    in-out property <int> request-id: 0;
+    in-out property <bool> showing-request: false;
+
+    callback allow-clicked();
+    callback deny-clicked();
+
+    title: "Deno Permission Broker";
+    width: 600px;
+    height: 700px;
+
+    if !showing-request: DashboardView {
+        broker-status: root.broker-status;
+        socket-path: root.socket-path;
+        current-time: root.current-time;
+        total-requests: root.total-requests;
+        allowed-requests: root.allowed-requests;
+        denied-requests: root.denied-requests;
+        recent-requests: root.recent-requests;
+    }
+
+    if showing-request: PermissionRequestView {
+        permission-type: root.permission-type;
+        permission-value: root.permission-value;
+        datetime: root.datetime;
+        request-id: root.request-id;
+
+        allow-clicked => {
+            root.allow-clicked();
+        }
+
+        deny-clicked => {
+            root.deny-clicked();
+        }
+    }
+}
