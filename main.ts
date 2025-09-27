@@ -381,9 +381,28 @@ class PermissionBroker {
   }
 }
 
+function getTmpDir() {
+  if (Deno.build.os === "windows") {
+    // Try standard Windows temp environment variables first
+    const tmp = Deno.env.get("TMP") || Deno.env.get("TEMP");
+    if (tmp) return tmp;
+
+    // Fallback to LocalAppData\Temp if available
+    const localAppData = Deno.env.get("LOCALAPPDATA");
+    if (localAppData) return `${localAppData}\\Temp`;
+
+    // Final fallback for Windows
+    return "C:\\temp";
+  }
+
+  // Unix-like systems (Linux, macOS, etc.)
+  return Deno.env.get("TMPDIR") || "/tmp";
+}
+
 // Main execution
 if (import.meta.main) {
-  const socketPath = Deno.args[0] || "/tmp/deno_perm_broker.sock";
+  const tmpDir = getTmpDir();
+  const socketPath = Deno.args[0] || `${tmpDir}/deno_perm_broker.sock`;
 
   console.log(`Starting permission broker on: ${socketPath}`);
   const broker = new PermissionBroker(socketPath);

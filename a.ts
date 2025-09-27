@@ -1,1 +1,0 @@
-Deno.readTextFileSync("/etc/hosts");
