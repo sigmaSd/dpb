@@ -11,7 +11,7 @@ The Deno Permission Broker is a GUI application built with Slint UI that acts as
 ### Running the Broker
 
 ```bash
-deno run --allow-all main.ts [socket-path]
+deno run --allow-all --unstable-raw-imports https://raw.githubusercontent.com/sigmaSd/dpb/refs/heads/master/main.ts [socket-path]
 ```
 
 Default socket path: `/tmp/deno_perm_broker.sock`
@@ -26,6 +26,8 @@ Applications can connect to the broker via the Unix socket to request permission
 
 ## Interface
 
+<img width="1280" height="685" alt="image" src="https://github.com/user-attachments/assets/34c7bddb-58bc-427b-9470-328fb75971e5" />
+<img width="1280" height="685" alt="image" src="https://github.com/user-attachments/assets/caeb5357-1b57-40a1-8f88-ba8b7aeb4d14" />
 
 ## Architecture
 
