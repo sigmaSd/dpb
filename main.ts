@@ -57,13 +57,6 @@ class PermissionBroker {
   private allowAllPermissions = new Set<string>();
 
   constructor(socketPath: string) {
-    // Remove existing socket file if it exists
-    try {
-      Deno.removeSync(socketPath);
-    } catch {
-      // Ignore error if file doesn't exist
-    }
-
     this.server = Deno.listen({ path: socketPath, transport: "unix" });
 
     // Create the Slint UI
